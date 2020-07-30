@@ -1,15 +1,12 @@
+const url = 'http://127.0.0.1:3000/';
+
 function fetchAndVisualizeData() {
-    fetch("./data.json")
-        .then(r => r.json())
-        .then(visualizeData);
+    fetch(url + 'matchesplayedperyear')
+        .then((r) => r.json())
+        .then(visualizeMatchesPlayedPerYear);
 }
 
 fetchAndVisualizeData();
-
-function visualizeData(data) {
-    visualizeMatchesPlayedPerYear(data.matchesPlayedPerYear);
-    return;
-}
 
 function visualizeMatchesPlayedPerYear(matchesPlayedPerYear) {
     const seriesData = [];
@@ -17,36 +14,36 @@ function visualizeMatchesPlayedPerYear(matchesPlayedPerYear) {
         seriesData.push([year, matchesPlayedPerYear[year]]);
     }
 
-    Highcharts.chart("matches-played-per-year", {
+    Highcharts.chart('matches-played-per-year', {
         chart: {
-            type: "column"
+            type: 'column',
         },
         title: {
-            text: "Matches Played Per Year"
+            text: 'Matches Played Per Year',
         },
         subtitle: {
-            text: 'Source: <a href="https://www.kaggle.com/nowke9/ipldata/data">IPL Dataset</a>'
+            text: 'Source: <a href="https://www.kaggle.com/nowke9/ipldata/data">IPL Dataset</a>',
         },
         xAxis: {
-            type: "category"
+            type: 'category',
         },
         yAxis: {
             min: 0,
             title: {
-                text: "Matches"
-            }
+                text: 'Matches',
+            },
         },
         series: [{
-            name: "Years",
-            data: seriesData
-        }]
+            name: 'Years',
+            data: seriesData,
+        }, ],
     });
 }
 
 //2
 function fetchAndVisualizeDataWon() {
-    fetch("./saveWon.json")
-        .then(r => r.json())
+    fetch(url + 'matcheswon')
+        .then((r) => r.json())
         .then(visualizeDataWon);
 }
 fetchAndVisualizeDataWon();
@@ -54,7 +51,7 @@ fetchAndVisualizeDataWon();
 function visualizeDataWon(data) {
     let teams = [];
     let matcheswon = [];
-    Object.keys(data).map(key => {
+    Object.keys(data).map((key) => {
         if (key) {
             teams.push(key);
             matcheswon.push(data[key]);
@@ -65,185 +62,180 @@ function visualizeDataWon(data) {
 }
 
 function visualizeMatchesWon(teams, matcheswon) {
-    //console.log(teams, matcheswon, Object.keys(matcheswon[0]));
     const seriesDataWon = [];
-    Object.keys(matcheswon[0]).map(year => {
-        seriesDataWon.push({ name: year, data: matcheswon.map(matchDetails => matchDetails[year]) });
+    Object.keys(matcheswon[0]).map((year) => {
+        seriesDataWon.push({ name: year, data: matcheswon.map((matchDetails) => matchDetails[year]) });
     });
 
     Highcharts.chart('Won-Matches', {
-
         chart: {
-            type: 'column'
+            type: 'column',
         },
 
         title: {
-            text: 'Number Of Matches Won By a Team Per Year'
+            text: 'Number Of Matches Won By a Team Per Year',
         },
 
         xAxis: {
-            categories: teams
+            categories: teams,
         },
 
         yAxis: {
             allowDecimals: false,
             min: 0,
             title: {
-                text: 'Number of wins'
-            }
+                text: 'Number of wins',
+            },
         },
 
         tooltip: {
             formatter: function() {
-                return '<b>' + this.x + '</b><br/>' +
-                    this.series.name + ': ' + this.y + '<br/>' +
-                    'Total: ' + this.point.stackTotal;
-            }
+                return (
+                    '<b>' +
+                    this.x +
+                    '</b><br/>' +
+                    this.series.name +
+                    ': ' +
+                    this.y +
+                    '<br/>' +
+                    'Total: ' +
+                    this.point.stackTotal
+                );
+            },
         },
 
         plotOptions: {
             column: {
-                stacking: 'normal'
-            }
+                stacking: 'normal',
+            },
         },
 
-        series: seriesDataWon
+        series: seriesDataWon,
     });
 }
 
 //3
 
 function fetchAndVisualizeData2() {
-    fetch("./saveExtraRuns.json")
-        .then(r => r.json())
-        .then(visualizeDataRuns);
+    const year = document.getElementById('extraruns').value;
+    fetch(url + 'extraruns/' + year)
+        .then((r) => r.json())
+        .then((data) => visualizeExtraRunsPerTeam(data, year));
 }
 
 fetchAndVisualizeData2();
 
-function visualizeDataRuns(data) {
-    visualizeExtraRunsPerTeam(data);
-    return;
-}
-function visualizeExtraRunsPerTeam(data) {
+function visualizeExtraRunsPerTeam(data, year) {
     const seriesDataRuns = [];
     for (let team in data) {
         seriesDataRuns.push([team, data[team]]);
     }
 
-    Highcharts.chart("matches-extra-runs", {
+    Highcharts.chart('matches-extra-runs', {
         chart: {
-            type: "column"
+            type: 'column',
         },
         title: {
-            text: "Extra Runs Scored By Each Team In 2016"
+            text: 'Extra Runs Scored By Each Team In ' + year,
         },
         subtitle: {
-            text: 'Source: <a href="https://www.kaggle.com/nowke9/ipldata/data">IPL Dataset</a>'
+            text: 'Source: <a href="https://www.kaggle.com/nowke9/ipldata/data">IPL Dataset</a>',
         },
         xAxis: {
-            type: "category"
+            type: 'category',
         },
         yAxis: {
             min: 0,
             title: {
-                text: "Extra Runs"
-            }
+                text: 'Extra Runs',
+            },
         },
         series: [{
-            name: "Runs",
-            data: seriesDataRuns
-        }]
+            name: 'Runs',
+            data: seriesDataRuns,
+        }, ],
     });
 }
 
 //4
 function fetchAndVisualizeData3() {
-    fetch("./saveEconomy.json")
-        .then(r => r.json())
-        .then(visualizeEconomy);
+    const year = document.getElementById('economy').value;
+    fetch(url + 'economy/' + year)
+        .then((r) => r.json())
+        .then((data) => visualizeEconomyRate(data, year));
 }
 
 fetchAndVisualizeData3();
 
-function visualizeEconomy(dataEconomy) {
-    visualizeEconomyRate(dataEconomy);
-    return;
-}
-function visualizeEconomyRate(dataEconomy) {
+function visualizeEconomyRate(dataEconomy, year) {
     const seriesDataEconomy = [];
     for (let name in dataEconomy) {
         seriesDataEconomy.push([name, parseFloat(dataEconomy[name])]);
     }
-    console.log(seriesDataEconomy);
 
-    Highcharts.chart("top-economy", {
+    Highcharts.chart('top-economy', {
         chart: {
-            type: "column"
+            type: 'column',
         },
         title: {
-            text: "Top 10 Economical Bowlers & Their Economy Rates in  2015"
+            text: 'Top 10 Economical Bowlers & Their Economy Rates in ' + year,
         },
         subtitle: {
-            text: 'Source: <a href="https://www.kaggle.com/nowke9/ipldata/data">IPL Dataset</a>'
+            text: 'Source: <a href="https://www.kaggle.com/nowke9/ipldata/data">IPL Dataset</a>',
         },
         xAxis: {
-            type: "category"
+            type: 'category',
         },
         yAxis: {
             min: 0,
             title: {
-                text: "Economy"
-            }
+                text: 'Economy',
+            },
         },
         series: [{
-            name: "Economy Rate",
-            data: seriesDataEconomy
-        }]
+            name: 'Economy Rate',
+            data: seriesDataEconomy,
+        }, ],
     });
 }
 //5
 function fetchAndVisualizeData4() {
-    fetch("./saveTopPlayer.json")
-        .then(r => r.json())
-        .then(visualizeTopPlayer);
+    fetch(url + 'mostruns')
+        .then((r) => r.json())
+        .then(visualizeTopPlayerData);
 }
 
 fetchAndVisualizeData4();
 
-function visualizeTopPlayer(dataTopPlayer) {
-    visualizeTopPlayerData(dataTopPlayer);
-    return;
-}
+
 function visualizeTopPlayerData(dataTopPlayer) {
     const seriesDataTopPlayer = [];
     for (let name in dataTopPlayer) {
         seriesDataTopPlayer.push([name, parseFloat(dataTopPlayer[name])]);
     }
-    console.log(seriesDataTopPlayer);
 
-    Highcharts.chart("top-players", {
+    Highcharts.chart('top-players', {
         chart: {
-            type: "column"
+            type: 'column',
         },
         title: {
-            text: "Top 10 Batsman"
+            text: 'Top 10 Batsman',
         },
         subtitle: {
-            text: 'Source: <a href="https://www.kaggle.com/nowke9/ipldata/data">IPL Dataset</a>'
+            text: 'Source: <a href="https://www.kaggle.com/nowke9/ipldata/data">IPL Dataset</a>',
         },
         xAxis: {
-            type: "category"
+            type: 'category',
         },
         yAxis: {
             min: 0,
             title: {
-                text: "Runs"
-            }
+                text: 'Runs',
+            },
         },
         series: [{
-            name: "Total Runs",
-            data: seriesDataTopPlayer
-        }]
+            name: 'Total Runs',
+            data: seriesDataTopPlayer,
+        }, ],
     });
 }

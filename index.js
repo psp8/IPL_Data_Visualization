@@ -1,96 +1,92 @@
-const fs = require("fs");
-const csv = require("csvtojson");
-const matchesPlayedPerYear = require("./ipl/matchesPlayedPerYear");
-const won = require("./ipl/won");
-const extraRuns = require("./ipl/extraRuns");
-const economy = require("./ipl/economy");
-const MostRuns = require("./ipl/MostRuns");
+const fs = require('fs');
+const csv = require('csvtojson');
+const matchesPlayedPerYear = require('./ipl/matchesPlayedPerYear');
+const won = require('./ipl/won');
+const extraRuns = require('./ipl/extraRuns');
+const economy = require('./ipl/economy');
+const MostRuns = require('./ipl/MostRuns');
+var express = require('express');
+var app = express();
+//Allow  CORS
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE');
+    next();
+});
 
+const MATCHES_FILE_PATH = './csv_data/matches.csv';
+const DELIVERIES_FILE_PATH = './csv_data/deliveries.csv';
 
-
-const MATCHES_FILE_PATH = "./csv_data/matches.csv";
-const DELIVERIES_FILE_PATH = "./csv_data/deliveries.csv";
-
-function main() {
+app.get('/extraruns/:year', function(req, res) {
+    const year = req.params.year;
+    if (!year) {
+        res.statusCode(500);
+        res.send('invalid year');
+    }
     csv()
         .fromFile(MATCHES_FILE_PATH)
-        .then(matches => {
+        .then((matches) => {
             csv()
                 .fromFile(DELIVERIES_FILE_PATH)
-                .then(deliveries => {
-                    let result = matchesPlayedPerYear(matches);
-                    let result_won = won(matches);
-                    let result_extra_runs = extraRuns(matches, 2016, deliveries);
-                    let result_economy = economy(matches, 2015, deliveries);
-                    let topRun = MostRuns(deliveries)
-
-                    var res = result_economy.slice(0, 10).reduce((acc, key) => {
-                        acc[key[0]] = key[1];
-                        return acc;
-                    }, {});
-
-                    var topBatsman = topRun.slice((topRun.length - 10), topRun.length);
-                    var batsman = topBatsman.reduce((acc, key) => {
-                        acc[key[0]] = key[1];
-                        return acc;
-                    }, {});
-
-                    saveMatchesPlayedPerYear(result);
-                    saveWon(result_won);
-                    saveRuns(result_extra_runs);
-                    saveEconomy(res);
-                    saveTopRuns(batsman);
+                .then((deliveries) => {
+                    res.send(extraRuns(matches, req.params.year, deliveries));
                 });
         });
-}
+});
+app.get('/economy/:year', function(req, res) {
+    const year = req.params.year;
+    if (!year) {
+        res.statusCode(500);
+        res.send('invalid year');
+    }
+    csv()
+        .fromFile(MATCHES_FILE_PATH)
+        .then((matches) => {
+            csv()
+                .fromFile(DELIVERIES_FILE_PATH)
+                .then((deliveries) => {
+                    res.send(
+                        economy(matches, req.params.year, deliveries)
+                        .slice(0, 10)
+                        .reduce((acc, key) => {
+                            acc[key[0]] = key[1];
+                            return acc;
+                        }, {})
+                    );
+                });
+        });
+});
+app.get('/matchesplayedperyear', function(req, res) {
+    csv()
+        .fromFile(MATCHES_FILE_PATH)
+        .then((matches) => {
+            res.send(matchesPlayedPerYear(matches));
+        });
+});
 
-function saveMatchesPlayedPerYear(result) {
-    const jsonData = {
-        matchesPlayedPerYear: result
-    };
-    const jsonString = JSON.stringify(jsonData);
-    fs.writeFile('./public/data.json', jsonString, "utf8", err => {
-        if (err) {
-            console.error(err);
-        }
-    });
-}
 
-function saveWon(result_won) {
-    const jsonString = JSON.stringify(result_won);
-    fs.writeFile('./public/saveWon.json', jsonString, "utf8", err => {
-        if (err) {
-            console.error(err);
-        }
-    });
-}
+app.get('/matcheswon', function(req, res) {
+    csv()
+        .fromFile(MATCHES_FILE_PATH)
+        .then((matches) => {
+            res.send(won(matches));
+        });
+});
 
-function saveRuns(result_extra_runs) {
-    const jsonString = JSON.stringify(result_extra_runs);
-    fs.writeFile('./public/saveExtraRuns.json', jsonString, "utf8", err => {
-        if (err) {
-            console.error(err);
-        }
-    });
-}
+app.get('/mostruns', function(req, res) {
+    csv()
+        .fromFile(DELIVERIES_FILE_PATH)
+        .then((deliveries) => {
+            res.send(
+                MostRuns(deliveries)
+                .slice(-10)
+                .reduce((acc, key) => {
+                    acc[key[0]] = key[1];
+                    return acc;
+                }, {})
+            );
+        });
+});
 
-function saveEconomy(res) {
-    const jsonString = JSON.stringify(res);
-    fs.writeFile('./public/saveEconomy.json', jsonString, "utf8", err => {
-        if (err) {
-            console.error(err);
-        }
-    });
-}
-
-function saveTopRuns(batsman) {
-    const jsonString = JSON.stringify(batsman);
-    console.log(jsonString)
-    fs.writeFile('./public/saveTopPlayer.json', jsonString, "utf8", err => {
-        if (err) {
-            console.error(err);
-        }
-    });
-}
-
-main();
+app.listen(3000);
